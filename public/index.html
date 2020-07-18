@@ -1,0 +1,153 @@
+<html>
+
+<head>
+  <title>Belajar RestFul API and jQuery</title>
+
+  <!--Getbootstrap CSS-->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel="stylesheet" href="/stylesheets/style.css">
+
+  <!--Using jQuery with a Google CDN 2.x snippet-->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+</head>
+
+<body>
+
+  <!--Membuat tampilan Card-->
+  <div class="card"> 
+    <div class="card-header">
+      <h5 class="card-title">Daftar Siswa</h5>
+    </div>
+
+    <!--Membuat Tampilan Form-->
+    <div class="card-body">
+      <form id="form-siswa">
+
+        <div class="form-group">
+          <label for="nama">Nama</label>
+          <input type="text" class="form-control" id="nama" aria-describedby="emailHelp">
+          <small id="emailHelp" class="form-text text-muted">tuliskan nama kamu</small>
+        </div>
+
+        <div class="form-group">
+          <label for="umur">Umur</label>
+          <input type="number" class="form-control" id="umur">
+        </div>
+
+        <div class="form-group form-check">
+          <input type="checkbox" class="form-check-input" id="isjomblo">
+          <label class="form-check-label" for="isjomblo">Jomblo Bro</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </form>
+
+      <!--Membuat Tampilan Tabel Striped-->
+    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Nama</th>
+          <th scope="col">Umur</th>
+          <th scope="col">Status</th>
+          <th scope="col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!--script jQuery.ajax ditulis diantara dan diatas body, Untuk Mempermudah Debugging, 
+    Akan tetapi berdasarkan estetika kerapihan lebih baik di simpan di Folder Public dalam file baru jquery&ajax.html-->
+
+    <!--1)script dengan type text/javascript
+    2)membuat fungsi load data dari backend, untuk memanggil method GET yang sudah dibuat, 
+    serta membuat fungsi yang lainnya addData dengan memanggil method POST dan 
+    deleteData dengan memanggil method DELETE 
+    3)membuat variabel besar const API_URL dengan didaftarkan http://localhost:3000/api/
+    4).done artinya Balikan data yang dari Backend atau Postman
+    5)wajib disertakan error handling fail()
+    6)$('table tbody').html(html) artinya harus tangkap DOM untuk tabel anaknya tbody, .html(html) artinya menulis syntax html di dalam html, dari html yang telah disusun
+    7)$(document).ready(() : memastikan bahwa load data dieksekusi setelah tabel html sudah tergambar di browser
+    8)$('#form-siswa').submit((event) : Event Listener => menunggu kejadian (klik submit Add Data) yang terjadi -->
+
+  <script type="text/javascript">
+    const API_URL = 'http://localhost:3000/api/' 
+
+    $(document).ready(() => {
+      loadData();
+
+      $('#form-siswa').submit((event) => {
+        event.preventDefault();
+        let nama = $('#nama').val()
+        let umur = $('#umur').val()
+        let isjomblo = $('#isjomblo').is(":checked")
+        addData({ nama, umur, isjomblo });
+      })
+
+      $("table tbody").on("click", ".btn-delete", function () {
+        deleteData($(this).attr('data-id'));
+      });
+    })
+
+    const loadData = () => {
+      $.ajax({
+        method: "GET",
+        url: `${API_URL}siswa`,
+        dataType: 'json'
+      })
+        .done(function (data) {
+          let html = '';
+          data.forEach(element => {
+            html += `
+            <tr>
+              <th scope="row">${element.id}</th>
+              <td>${element.nama}</td>
+              <td>${element.umur}</td>
+              <td>${element.isjomblo ? 'ngga laku' : 'beruntung'}</td>
+              <td><button class="btn btn-danger btn-delete" type="button" data-id="${element.id}">Delete</button></td>
+            </tr>
+            `
+          });
+          $('table tbody').html(html) 
+        })
+        .fail(function (jqXHR, textStatus) { 
+          alert("Request failed: " + textStatus);
+        });
+    }
+
+    const addData = (siswa) => {
+      $.ajax({
+        method: "POST",
+        url: `${API_URL}siswa`,
+        data: siswa
+      })
+        .done(function (msg) {
+          loadData();
+        })
+        .fail(function (jqXHR, textStatus) {
+          alert("Request failed: " + textStatus);
+        });
+    }
+
+    const deleteData = (id) => {
+      $.ajax({
+        method: "DELETE",
+        url: `${API_URL}siswa/${id}`
+      })
+        .done(function (msg) {
+          loadData();
+        })
+        .fail(function (jqXHR, textStatus) {
+          alert("Request failed: " + textStatus);
+        });
+    }
+  </script>
+
+</body>
+
+</html>
